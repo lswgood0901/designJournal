@@ -36,9 +36,7 @@ The following materials will be released in this repository:
 
 | Resource | Status |
 | --- | --- |
-| Main figure | Available |
 | Participant action data | Coming soon |
-| To-do list data | Coming soon |
 | DesignJournal system | Coming soon |
 | Project page | Available |
 
