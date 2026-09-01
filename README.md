@@ -34,7 +34,7 @@ The following materials will be released in this repository:
 
 | Resource | Status |
 | --- | --- |
-| Participant action data | Coming soon |
+| Participant action data | Available |
 | DesignJournal system | Coming soon |
 | Project page | Coming soon |
 
