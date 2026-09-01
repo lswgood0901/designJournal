@@ -1,0 +1,1040 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>DesignJournal &mdash; Agent-Driven Creative Trace Mining</title>
+  <meta name="description" content="DesignJournal mines multimodal creative traces and transforms them into intent-aligned image generation. A 10-day deployment study with eight professional designers, analyzing 5,838 classified design actions." />
+  <meta property="og:title" content="DesignJournal: How Agent-Driven Creative Trace Mining Reshapes Design Behavior" />
+  <meta property="og:description" content="A deployment study of intent-aligned multimodal design — three agents (ECHO, INSIGHT, SPARK), 8 professional designers, 10 days, 5,838 classified actions." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://cosjiimos.github.io/DesignJournal/" />
+  <meta property="og:image" content="https://cosjiimos.github.io/DesignJournal/assets/img/fig1_overview.jpg" />
+  <meta name="twitter:card" content="summary_large_image" />
+
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>%F0%9F%93%94</text></svg>" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&family=Lora:ital,wght@0,500;0,600;1,500&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+            mono: ['JetBrains Mono', 'ui-monospace', 'monospace'],
+            serif: ['Lora', 'ui-serif', 'Georgia', 'serif'],
+          },
+          colors: {
+            /* Ink-blue accent — the "journal" register */
+            accent: {
+              50:  '#eef3f9',
+              100: '#dbe6f3',
+              200: '#b7cbe6',
+              300: '#8badd5',
+              400: '#5d88bd',
+              500: '#3d6aa3',
+              600: '#2f548a',
+              700: '#274571',
+              800: '#22395b',
+              900: '#1d3049',
+            },
+            /* Agent role colors, matching the group borders in the system figures */
+            echo:    { 100: '#dce9f6', 500: '#3d6aa3', 700: '#274571' },
+            insight: { 100: '#e2eddf', 500: '#5f8f56', 700: '#436c3c' },
+            spark:   { 100: '#fbe6d5', 500: '#d1793a', 700: '#a05625' },
+          },
+        },
+      },
+    };
+  </script>
+
+  <style>
+    html { scroll-behavior: smooth; }
+    body { font-feature-settings: 'cv11', 'ss01', 'ss03'; }
+    .brand { letter-spacing: -0.01em; }
+    .section-anchor { scroll-margin-top: 4rem; }
+
+    /* Agent role cards */
+    .role-card { transition: border-color 140ms ease, box-shadow 140ms ease, transform 140ms ease; cursor: pointer; }
+    .role-card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px -14px rgba(29,48,73,0.5); }
+    .role-card.is-active { box-shadow: 0 8px 24px -12px rgba(29,48,73,0.45); }
+
+    /* Pipeline stage cards */
+    .stage-card { transition: border-color 140ms ease, box-shadow 140ms ease, transform 140ms ease; }
+    .stage-card:hover { border-color: rgb(139 173 213); box-shadow: 0 6px 22px -12px rgba(34,57,91,0.45); transform: translateY(-2px); }
+
+    /* Taxonomy chips */
+    .tax-chip { cursor: help; transition: background 120ms ease, border-color 120ms ease; }
+    .tax-chip:hover { border-color: rgb(93 136 189); background: rgb(238 243 249); }
+
+    .zoomable { cursor: zoom-in; }
+    button:not(:disabled) { cursor: pointer; }
+
+    /* n-gram comparison bars */
+    .bar { transition: width 420ms cubic-bezier(.22,.8,.28,1); }
+
+    /* Interactive playground region */
+    .interactive-zone {
+      position: relative;
+      background:
+        radial-gradient(120% 120% at 0% 0%, rgba(61,106,163,0.06), transparent 60%),
+        #fafbfd;
+      border: 1.5px dashed rgb(183 203 230);
+      border-radius: 1.25rem;
+    }
+    .interactive-badge {
+      position: absolute;
+      top: -0.7rem;
+      left: 1.25rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.2rem 0.7rem;
+      background: #2f548a;
+      color: #fff;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      border-radius: 9999px;
+      box-shadow: 0 4px 12px -4px rgba(34,57,91,0.5);
+    }
+    .interactive-badge .dot {
+      width: 6px; height: 6px; border-radius: 9999px; background: #fff;
+      animation: livepulse 1.8s ease-in-out infinite;
+    }
+    @keyframes livepulse { 0%,100% { opacity: 1; } 50% { opacity: 0.35; } }
+  </style>
+</head>
+
+<body class="bg-white text-gray-800 antialiased">
+
+  <!-- ============================== STICKY NAV ============================== -->
+  <nav class="sticky top-0 z-50 bg-white/85 backdrop-blur border-b border-gray-100">
+    <div class="max-w-5xl mx-auto px-6 h-12 flex items-center justify-between text-[13px]">
+      <a href="#" class="font-bold tracking-tight text-gray-900 brand flex items-center gap-1.5">
+        <span class="text-accent-600">◧</span> DesignJournal
+      </a>
+      <div class="hidden md:flex items-center gap-5 text-gray-600">
+        <a href="#problem" class="hover:text-accent-700">Problem</a>
+        <a href="#system" class="hover:text-accent-700">System</a>
+        <a href="#agents" class="hover:text-accent-700">Agents</a>
+        <a href="#taxonomy" class="hover:text-accent-700">Taxonomy</a>
+        <a href="#study" class="hover:text-accent-700">Deployment</a>
+        <a href="#results" class="hover:text-accent-700">Results</a>
+        <a href="#loops" class="hover:text-accent-700">Loops</a>
+        <a href="#cite" class="hover:text-accent-700">Cite</a>
+      </div>
+      <div class="flex items-center gap-3">
+        <!-- Related projects dropdown -->
+        <div class="relative" id="related-wrap">
+          <button id="related-btn" type="button" aria-expanded="false"
+            class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-gray-200 bg-white hover:border-accent-300 hover:text-accent-700 transition text-[12.5px] font-medium">
+            Related projects
+            <svg class="w-3 h-3 transition-transform" id="related-caret" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/></svg>
+          </button>
+          <div id="related-menu" class="hidden absolute right-0 mt-2 w-64 bg-white border border-gray-200 rounded-xl shadow-lg p-1.5 z-50">
+            <a href="https://cosjiimos.github.io/CogChat/" target="_blank" rel="noopener"
+               class="block px-3 py-2.5 rounded-lg hover:bg-accent-50 transition group">
+              <div class="flex items-center justify-between">
+                <span class="font-semibold text-gray-900 text-[13px] group-hover:text-accent-700">◑ CogChat</span>
+                <svg class="w-3.5 h-3.5 text-gray-300 group-hover:text-accent-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+              </div>
+              <p class="text-[11.5px] text-gray-500 leading-snug mt-0.5">Knowledge graph-augmented conversational AI for design</p>
+            </a>
+            <a href="https://cosjiimos.github.io/GenAlign/" target="_blank" rel="noopener"
+               class="block px-3 py-2.5 rounded-lg hover:bg-accent-50 transition group">
+              <div class="flex items-center justify-between">
+                <span class="font-semibold text-gray-900 text-[13px] group-hover:text-accent-700">👾 GenAlign</span>
+                <svg class="w-3.5 h-3.5 text-gray-300 group-hover:text-accent-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+              </div>
+              <p class="text-[11.5px] text-gray-500 leading-snug mt-0.5">Structured Visual Knowledge Graph Extraction for Design Generation</p>
+            </a>
+            <a href="https://cosjiimos.github.io/" target="_blank" rel="noopener"
+               class="block px-3 py-2.5 rounded-lg hover:bg-accent-50 transition group">
+              <div class="flex items-center justify-between">
+                <span class="font-semibold text-gray-900 text-[13px] group-hover:text-accent-700">More research</span>
+                <svg class="w-3.5 h-3.5 text-gray-300 group-hover:text-accent-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+              </div>
+              <p class="text-[11.5px] text-gray-500 leading-snug mt-0.5">cosjiimos.github.io</p>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ============================== HERO ============================== -->
+  <header class="relative overflow-hidden">
+    <div class="absolute inset-0 -z-10 bg-gradient-to-b from-accent-50/70 via-white to-white"></div>
+
+    <div class="max-w-4xl mx-auto px-6 pt-12 pb-12 text-center">
+      <div class="inline-flex items-center px-3.5 py-1 rounded-full bg-accent-100 text-accent-800 text-[12px] font-semibold tracking-wider uppercase mb-6">
+        IJHCI &middot; Under review
+      </div>
+
+      <h1 class="font-sans text-4xl md:text-6xl font-extrabold tracking-tight text-gray-900 mb-3 flex items-center justify-center gap-3">
+        <span class="text-accent-600">◧</span><span class="brand">DesignJournal</span>
+      </h1>
+      <p class="text-lg md:text-2xl text-gray-700 mb-6 leading-tight max-w-3xl mx-auto" style="font-family:'Space Grotesk',ui-sans-serif,system-ui,sans-serif; font-weight:500; letter-spacing:-0.015em;">
+        How Agent-Driven Creative Trace Mining Reshapes Design Behavior in a Deployment Study of Intent-Aligned Multimodal Design
+      </p>
+
+      <div class="text-gray-700 mb-2 text-sm leading-relaxed max-w-3xl mx-auto">
+        Seung Won Lee<sup class="text-gray-400">1,*</sup>,
+        <a href="https://cosjiimos.github.io/" target="_blank" rel="noopener" class="hover:text-accent-700 underline-offset-2 hover:underline">Jiin Choi</a><sup class="text-gray-400">1,*</sup>,
+        Yejin Yun<sup class="text-gray-400">1,*</sup>,
+        Semin Jin<sup class="text-gray-400">1</sup>,
+        Yugyeong Jang<sup class="text-gray-400">1</sup>,
+        Geunmin Hwang<sup class="text-gray-400">2</sup>,
+        Sang Woon Park<sup class="text-gray-400">2</sup>,
+        Seonghoon Ban<sup class="text-gray-400">2</sup>,
+        <a href="https://designai.hanyang.ac.kr/People_Kyung-Hoon-Hyun" target="_blank" rel="noopener" class="hover:text-accent-700 underline-offset-2 hover:underline">Kyung Hoon Hyun</a><sup class="text-gray-400">1,&dagger;</sup>
+      </div>
+      <div class="text-gray-500 text-[11px] leading-relaxed mb-1 max-w-2xl mx-auto">
+        <sup>1</sup><a href="https://designai.hanyang.ac.kr" target="_blank" rel="noopener" class="hover:text-accent-700 underline-offset-2 hover:underline">Design AI Lab</a>, Department of Interior Architecture Design, Hanyang University, Seoul, Republic of Korea<br/>
+        <sup>2</sup>RECON Labs Inc., Republic of Korea
+      </div>
+      <div class="text-gray-400 text-[11px] mb-7">
+        <sup>*</sup>Equal contribution &nbsp;&middot;&nbsp; <sup>&dagger;</sup>Corresponding author &nbsp;&middot;&nbsp; International Journal of Human&ndash;Computer Interaction
+      </div>
+
+      <div class="flex flex-wrap items-center justify-center gap-2">
+        <span aria-disabled="true" title="Under review"
+           class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gray-200 text-gray-400 text-[13px] font-medium cursor-not-allowed select-none">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.247m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.247"/></svg>
+          Paper
+          <span class="text-[10px] uppercase tracking-wide bg-gray-300 text-gray-500 rounded px-1.5 py-0.5">soon</span>
+        </span>
+        <span aria-disabled="true" title="Coming soon"
+           class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gray-200 text-gray-400 text-[13px] font-medium cursor-not-allowed select-none">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 010 5.656l-3 3a4 4 0 01-5.656-5.656l1.5-1.5M10.172 13.828a4 4 0 010-5.656l3-3a4 4 0 015.656 5.656l-1.5 1.5"/></svg>
+          DOI
+          <span class="text-[10px] uppercase tracking-wide bg-gray-300 text-gray-500 rounded px-1.5 py-0.5">soon</span>
+        </span>
+        <a href="#system"
+           class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gray-900 text-white text-[13px] font-medium hover:bg-gray-700 transition">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v12a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM9 4v16"/></svg>
+          System
+        </a>
+        <a href="#results"
+           class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white border border-gray-300 text-gray-800 text-[13px] font-medium hover:border-accent-500 hover:text-accent-700 transition">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+          Results
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- ============================== TL;DR ============================== -->
+  <section id="tldr" class="section-anchor max-w-5xl mx-auto px-6 py-12">
+    <div class="mb-8">
+      <p class="text-[10px] uppercase tracking-widest text-accent-700 font-semibold mb-2">TL;DR</p>
+      <h2 class="text-2xl md:text-3xl font-bold text-gray-900 leading-snug mb-4">
+        Agents don&rsquo;t just add actions to design work &mdash; they <em>reconfigure the sequence</em> of it.
+      </h2>
+      <p class="text-gray-600 text-[15px] leading-relaxed">
+        Designers capture inspirations constantly &mdash; sketches, photographs, voice memos, notes &mdash; but these <b>creative traces</b> rarely flow back into creation. <b class="text-accent-700">DesignJournal</b> consolidates multimodal artifacts into one workspace and mines them with an agentic pipeline: structured grouping by three role-differentiated agents (<b class="text-echo-700">ECHO</b>, <b class="text-insight-700">INSIGHT</b>, <b class="text-spark-700">SPARK</b>), belief-guided prompt refinement, and iterative intent updates. To measure what this does to real practice, we ran a <b>10-day in-the-wild deployment</b> with eight professional designers and built a framework that classifies <b>5,838 design actions</b> into a dual-origin taxonomy. Agent support significantly reduced spatial repositioning &mdash; concentrated in <em>small</em> moves &mdash; and shifted transition structures from long repositioning chains toward <b>relational encoding</b> sequences.
+      </p>
+    </div>
+    <figure>
+      <img src="assets/img/fig1_overview.jpg" loading="lazy" alt="DesignJournal system overview: the interface consolidates multimodal design artifacts — text, sketches, images, and audio — into a timeline and canvas with agent-based grouping and generation." class="w-full block rounded-xl border border-gray-200 zoomable" />
+      <figcaption class="mt-2 text-gray-500 text-[11px] leading-relaxed text-center">
+        <b>Figure 1.</b> DesignJournal system overview &mdash; the interface consolidates multimodal design artifacts (text, sketches, images, and audio) into a chronologically revisitable timeline and a spatially organizable canvas, and turns them into intent-aligned generation.
+      </figcaption>
+    </figure>
+
+    <!-- Headline numbers -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mt-8">
+      <div class="border border-gray-200 rounded-xl p-4 text-center">
+        <div class="text-2xl font-extrabold text-accent-700">5,838</div>
+        <p class="text-[11.5px] text-gray-500 leading-snug mt-1">classified design actions from 14,075 raw events</p>
+      </div>
+      <div class="border border-gray-200 rounded-xl p-4 text-center">
+        <div class="text-2xl font-extrabold text-accent-700">10 days</div>
+        <p class="text-[11.5px] text-gray-500 leading-snug mt-1">in-the-wild deployment, 5 days per condition</p>
+      </div>
+      <div class="border border-gray-200 rounded-xl p-4 text-center">
+        <div class="text-2xl font-extrabold text-accent-700">8</div>
+        <p class="text-[11.5px] text-gray-500 leading-snug mt-1">professional designers, within-subject</p>
+      </div>
+      <div class="border border-gray-200 rounded-xl p-4 text-center">
+        <div class="text-2xl font-extrabold text-accent-700">&minus;43%</div>
+        <p class="text-[11.5px] text-gray-500 leading-snug mt-1">Relocate actions with agent support (<span class="font-mono">p</span>&nbsp;=&nbsp;.039)</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================== PROBLEM ============================== -->
+  <section id="problem" class="section-anchor bg-gray-50 border-y border-gray-100">
+    <div class="max-w-5xl mx-auto px-6 py-14">
+      <p class="text-[10px] uppercase tracking-widest text-accent-700 font-semibold mb-2">The problem</p>
+      <h2 class="text-2xl md:text-3xl font-bold text-gray-900 leading-tight mb-2">
+        Records accumulate. The pipeline from capture to reuse breaks.
+      </h2>
+      <p class="text-gray-500 text-[15px] mb-9 max-w-2xl">Designers work across seven to eight parallel tools. Ideas scatter across apps, boards, and folders, and a findability bottleneck recurs every time reuse is attempted. Four obstacles motivate four design goals.</p>
+
+      <div class="grid md:grid-cols-2 gap-4">
+        <div class="bg-white border border-gray-200 rounded-xl p-5">
+          <div class="flex items-center gap-2 mb-2">
+            <span class="text-[10px] font-mono font-semibold text-white bg-accent-600 rounded px-1.5 py-0.5">DG1</span>
+            <h3 class="font-semibold text-gray-900">Consolidate scattered traces</h3>
+          </div>
+          <p class="text-[13px] text-gray-600 leading-relaxed">Traces scatter across parallel tools and become a findability bottleneck during goal-directed reuse. A single repository must keep multimodal traces revisitable both <em>chronologically</em> and <em>spatially</em>.</p>
+        </div>
+        <div class="bg-white border border-gray-200 rounded-xl p-5">
+          <div class="flex items-center gap-2 mb-2">
+            <span class="text-[10px] font-mono font-semibold text-white bg-accent-600 rounded px-1.5 py-0.5">DG2</span>
+            <h3 class="font-semibold text-gray-900">Preserve explicit relations</h3>
+          </div>
+          <p class="text-[13px] text-gray-600 leading-relaxed">Pinboards either keep connections off-canvas or lack model-driven interpretation, so relational context erodes as the collection grows. Relationships between items must be explicit and persistent at scale.</p>
+        </div>
+        <div class="bg-white border border-gray-200 rounded-xl p-5">
+          <div class="flex items-center gap-2 mb-2">
+            <span class="text-[10px] font-mono font-semibold text-white bg-accent-600 rounded px-1.5 py-0.5">DG3</span>
+            <h3 class="font-semibold text-gray-900">Turn records into evidence</h3>
+          </div>
+          <p class="text-[13px] text-gray-600 leading-relaxed">A single text prompt rarely conveys implicit intent; text-centric input narrows interpretive range and induces fixation. Generation should be grounded in accumulated, time- and relation-structured records &mdash; not isolated prompts.</p>
+        </div>
+        <div class="bg-white border border-gray-200 rounded-xl p-5">
+          <div class="flex items-center gap-2 mb-2">
+            <span class="text-[10px] font-mono font-semibold text-white bg-accent-600 rounded px-1.5 py-0.5">DG4</span>
+            <h3 class="font-semibold text-gray-900">Align intent across stages</h3>
+          </div>
+          <p class="text-[13px] text-gray-600 leading-relaxed">Existing multiturn T2I offers no group-level reuse, and generative output carries documented fixation risk. Support needs distinct roles for consolidation, reinterpretation, and divergence &mdash; each keeping intent aligned across iterations.</p>
+        </div>
+      </div>
+
+      <!-- Research questions -->
+      <div class="mt-9 grid md:grid-cols-3 gap-4">
+        <div class="border-l-2 border-accent-400 pl-4">
+          <div class="text-[11px] font-mono text-accent-600 mb-1">RQ1</div>
+          <p class="text-[13.5px] text-gray-700 leading-snug">Which changes in design action patterns emerge when agent-based affordances are introduced?</p>
+        </div>
+        <div class="border-l-2 border-accent-400 pl-4">
+          <div class="text-[11px] font-mono text-accent-600 mb-1">RQ2</div>
+          <p class="text-[13.5px] text-gray-700 leading-snug">Which new human&ndash;AI collaborative loops arise, and how do they replace or complement existing practices?</p>
+        </div>
+        <div class="border-l-2 border-accent-400 pl-4">
+          <div class="text-[11px] font-mono text-accent-600 mb-1">RQ3</div>
+          <p class="text-[13.5px] text-gray-700 leading-snug">How do designers perceive appropriate agent-mediated workflows in terms of authorship, traceability, and agency?</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================== SYSTEM ============================== -->
+  <section id="system" class="section-anchor max-w-6xl mx-auto px-6 py-14">
+    <p class="text-[10px] uppercase tracking-widest text-accent-700 font-semibold mb-2">The system</p>
+    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-2">Four parts, from capture to intent-aligned generation.</h2>
+    <p class="text-gray-500 text-[15px] mb-8 max-w-2xl">Records enter as notes, images, drawings, tables, to-do lists, or voice memos. They are stored as structured JSON, arranged on a canvas with a chronological timeline alongside, and composed into prompts by the agents.</p>
+
+    <div class="grid md:grid-cols-4 gap-4 mb-10">
+      <div class="stage-card bg-white border border-gray-200 rounded-xl p-4">
+        <div class="text-[11px] font-mono text-accent-600 mb-2">part 01 &middot; DG1, DG3</div>
+        <h3 class="font-semibold text-gray-900 text-[15px] mb-1.5">Goal &amp; Record Input</h3>
+        <p class="text-[12.5px] text-gray-600 leading-snug">A Global Goal plus up to three Local Intents, alongside unified multimodal capture &mdash; notes, images, audio, sketches &mdash; each annotated with Captions, Reactions, and Comments stating <em>why</em> it was saved.</p>
+      </div>
+      <div class="stage-card bg-white border border-gray-200 rounded-xl p-4">
+        <div class="text-[11px] font-mono text-accent-600 mb-2">part 02 &middot; DG1, DG2</div>
+        <h3 class="font-semibold text-gray-900 text-[15px] mb-1.5">Canvas Organization</h3>
+        <p class="text-[12.5px] text-gray-600 leading-snug">The left timeline tracks items chronologically; the central canvas lets designers place, link, and cluster records at the group level so relations persist as the collection grows.</p>
+      </div>
+      <div class="stage-card bg-white border border-gray-200 rounded-xl p-4">
+        <div class="text-[11px] font-mono text-accent-600 mb-2">part 03 &middot; DG4</div>
+        <h3 class="font-semibold text-gray-900 text-[15px] mb-1.5">Agent Processing</h3>
+        <p class="text-[12.5px] text-gray-600 leading-snug">Three agents infer implicit intent by computing similarities over extracted descriptions, then generate and refine targeted questions. Each item carries a high/low <em>belief</em> signal.</p>
+      </div>
+      <div class="stage-card bg-white border border-gray-200 rounded-xl p-4">
+        <div class="text-[11px] font-mono text-accent-600 mb-2">part 04 &middot; DG3, DG4</div>
+        <h3 class="font-semibold text-gray-900 text-[15px] mb-1.5">Generation &amp; Evaluation</h3>
+        <p class="text-[12.5px] text-gray-600 leading-snug">Group-level prompts produce alternatives that the designer compares, selects, and saves back as new inspiration &mdash; with the Goal and Local Intents refined after each feedback loop.</p>
+      </div>
+    </div>
+
+    <figure class="mb-10">
+      <img src="assets/img/fig2_pipeline.jpg" loading="lazy" alt="The DesignJournal pipeline, from goal and record input through canvas organization and agent processing to generation and evaluation." class="w-full block rounded-xl border border-gray-200 bg-white zoomable" />
+      <figcaption class="mt-2 text-gray-500 text-[11px] leading-relaxed text-center">
+        <b>Figure 2.</b> Pipeline of DesignJournal.
+      </figcaption>
+    </figure>
+
+    <figure class="mb-10">
+      <img src="assets/img/fig3_system.jpg" loading="lazy" alt="The DesignJournal interface: set goal, agent group mode, generate idea, and edit and generate." class="w-full block rounded-xl border border-gray-200 zoomable" />
+      <figcaption class="mt-2 text-gray-500 text-[11px] leading-relaxed text-center">
+        <b>Figure 3.</b> (a) <b>Set Goal</b> &mdash; declare the Global Goal and add Local Intents, with system-generated suggestions from the current design context &middot; (b) <b>Agent (Group Mode)</b> &mdash; records organized into ECHO, INSIGHT, and SPARK groups &middot; (c) <b>Generate Idea</b> &mdash; color-highlighted prompts with targeted refinement questions &middot; (d) <b>Edit &amp; Generate</b> &mdash; localized, point-guided edits that preserve composition, lighting, and scene consistency.
+      </figcaption>
+    </figure>
+
+    <figure>
+      <img src="assets/img/fig4_artifacts.jpg" loading="lazy" alt="Artifact types in DesignJournal with caption, reaction, and comment functions." class="w-full block rounded-xl border border-gray-200 zoomable" />
+      <figcaption class="mt-2 text-gray-500 text-[11px] leading-relaxed text-center">
+        <b>Figure 4.</b> Artifact types and the (a) Caption, (b) Reaction, and (c) Comment functions &mdash; the annotations that record <em>why</em> an item was kept.
+      </figcaption>
+    </figure>
+  </section>
+
+  <!-- ============================== AGENTS ============================== -->
+  <section id="agents" class="section-anchor bg-gray-50 border-y border-gray-100">
+    <div class="max-w-6xl mx-auto px-6 py-14">
+      <p class="text-[10px] uppercase tracking-widest text-accent-700 font-semibold mb-2">Three agents</p>
+      <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-2">Roles defined by how a record relates to declared intent.</h2>
+      <p class="text-gray-500 text-[15px] mb-8 max-w-3xl">The same record can land in a different group depending on the current Goal and Local Intent &mdash; the assignment is <em>relational</em>, not categorical. Each agent synthesizes its own prompt from its group, so the designer works with three parallel alternatives from three distinct perspectives.</p>
+
+      <div class="interactive-zone p-5 md:p-7 pt-8 md:pt-9">
+        <span class="interactive-badge"><span class="dot"></span> Pick an agent</span>
+        <div class="grid md:grid-cols-3 gap-4 mb-6" id="role-cards">
+          <button class="role-card is-active text-left bg-white border-2 border-echo-500 rounded-2xl p-5" data-role="echo">
+            <div class="flex items-center gap-2 mb-2">
+              <span class="w-2.5 h-2.5 rounded-full bg-echo-500"></span>
+              <h3 class="font-bold text-echo-700 tracking-tight">ECHO</h3>
+              <span class="ml-auto text-[10px] uppercase tracking-wider text-gray-400 font-semibold">convergent</span>
+            </div>
+            <p class="text-[13px] text-gray-600 leading-relaxed">Aligns directly with the <b>Global Goal</b>, consolidating decision-ready references into actionable directions.</p>
+          </button>
+          <button class="role-card text-left bg-white border-2 border-gray-200 rounded-2xl p-5" data-role="insight">
+            <div class="flex items-center gap-2 mb-2">
+              <span class="w-2.5 h-2.5 rounded-full bg-insight-500"></span>
+              <h3 class="font-bold text-insight-700 tracking-tight">INSIGHT</h3>
+              <span class="ml-auto text-[10px] uppercase tracking-wider text-gray-400 font-semibold">interpretive</span>
+            </div>
+            <p class="text-[13px] text-gray-600 leading-relaxed">Reorganizes records supporting the current <b>Local Intent</b> into patterns and constraints that refine it.</p>
+          </button>
+          <button class="role-card text-left bg-white border-2 border-gray-200 rounded-2xl p-5" data-role="spark">
+            <div class="flex items-center gap-2 mb-2">
+              <span class="w-2.5 h-2.5 rounded-full bg-spark-500"></span>
+              <h3 class="font-bold text-spark-700 tracking-tight">SPARK</h3>
+              <span class="ml-auto text-[10px] uppercase tracking-wider text-gray-400 font-semibold">divergent</span>
+            </div>
+            <p class="text-[13px] text-gray-600 leading-relaxed">Explores possibilities through records deliberately <b>distant from both intents</b> &mdash; bounded by material the designer chose to keep.</p>
+          </button>
+        </div>
+
+        <!-- Role detail panel -->
+        <div class="bg-white border border-gray-200 rounded-2xl p-5 md:p-6" id="role-panel">
+          <div class="flex flex-wrap items-baseline gap-x-3 gap-y-1 mb-4">
+            <h3 class="text-lg font-bold tracking-tight" id="role-title">ECHO</h3>
+            <span class="text-[12px] text-gray-500" id="role-sub">Consolidating decision-ready knowledge</span>
+          </div>
+          <div class="grid md:grid-cols-2 gap-5">
+            <div>
+              <p class="text-[10px] uppercase tracking-widest text-gray-400 font-semibold mb-2">Records it pulls in</p>
+              <ul class="space-y-1.5 text-[13.5px] text-gray-700" id="role-records"></ul>
+            </div>
+            <div>
+              <p class="text-[10px] uppercase tracking-widest text-gray-400 font-semibold mb-2">Synthesized prompt &rarr; refinement question</p>
+              <div class="rounded-xl border border-gray-200 bg-gray-50 p-3.5">
+                <p class="text-[13px] text-gray-800 leading-snug italic mb-3" id="role-prompt"></p>
+                <div class="pt-3 border-t border-dashed border-gray-300">
+                  <div class="text-[10px] uppercase tracking-wider font-semibold mb-1" id="role-qlabel">Refinement question</div>
+                  <p class="text-[13px] text-gray-700 leading-snug" id="role-question"></p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <p class="text-[11.5px] text-gray-400 mt-4 leading-relaxed">Illustrative example from the cafe lounge brief. Prompts are strictly grounded in the collected descriptions &mdash; exaggeration is prohibited &mdash; and questions target only visually verifiable attributes (color, material, form, layout, composition, style).</p>
+        </div>
+      </div>
+
+      <figure class="mt-10">
+        <img src="assets/img/fig5_groupgen.jpg" loading="lazy" alt="Group-based generation and iterative refinement workflow with agents: trigger generation, view images, answer suggested questions, re-generate, save, and see refined goals." class="w-full block rounded-xl border border-gray-200 zoomable" />
+        <figcaption class="mt-2 text-gray-500 text-[11px] leading-relaxed text-center">
+          <b>Figure 5.</b> Group-based generation and iterative refinement. (a) Trigger generation per group &middot; (b) Synthesized prompt + images &middot; (c) Suggested Questions aligned to goals and intents &middot; (d) Re-Generate on the answer &middot; (e) Add to My DesignJournal &middot; (f) Goal and Local Intents refined in the Set Goal panel.
+        </figcaption>
+      </figure>
+
+      <!-- Belief-guided refinement -->
+      <div class="mt-10 grid md:grid-cols-3 gap-5">
+        <div class="md:col-span-2">
+          <h3 class="text-xl font-bold text-gray-900 mb-2">Belief-guided prompt refinement, batched.</h3>
+          <p class="text-[14px] text-gray-600 leading-relaxed mb-3">
+            Multiturn back-and-forth burdens cognition, so the refinement agent uses a <b>batch-questioning scheme</b>: it proposes questions about multiple attributes across one or more entities at once, collects a single response, and updates the prompt &mdash; preserving the benefit of multiturn interaction without the latency.
+          </p>
+          <p class="text-[14px] text-gray-600 leading-relaxed">
+            Artifacts are split by belief. <b>High-belief</b> artifacts drive questions that encourage diversity around well-captured elements; <b>low-belief</b> artifacts target ambiguities to resolve underspecified parts of the prompt. The agent then applies the response while minimizing edits &mdash; preserving core context and tone, updating only the changed attributes.
+          </p>
+        </div>
+        <div class="bg-white border border-gray-200 rounded-2xl p-5">
+          <p class="text-[10px] uppercase tracking-widest text-accent-700 font-semibold mb-3">Prevalidation &middot; IDEA-Bench T2I</p>
+          <div class="space-y-3">
+            <div>
+              <div class="flex items-baseline justify-between text-[13px] mb-1">
+                <span class="text-gray-600">w/o agent (baseline)</span>
+                <span class="font-mono font-semibold text-gray-700">75.00</span>
+              </div>
+              <div class="h-2 rounded-full bg-gray-100 overflow-hidden"><div class="bar h-full bg-gray-400" style="width:90%"></div></div>
+            </div>
+            <div>
+              <div class="flex items-baseline justify-between text-[13px] mb-1">
+                <span class="text-accent-700 font-medium">w/ agent (ours)</span>
+                <span class="font-mono font-semibold text-accent-700">83.33</span>
+              </div>
+              <div class="h-2 rounded-full bg-accent-100 overflow-hidden"><div class="bar h-full bg-accent-600" style="width:100%"></div></div>
+            </div>
+          </div>
+          <p class="text-[11.5px] text-gray-500 leading-relaxed mt-3">With the Prompt Refinement Agent, generation reaches the IDEA-Bench T2I state of the art (Flux-1, 83.33) under MLLM-based automated evaluation.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================== TAXONOMY ============================== -->
+  <section id="taxonomy" class="section-anchor max-w-6xl mx-auto px-6 py-14">
+    <p class="text-[10px] uppercase tracking-widest text-accent-700 font-semibold mb-2">Analysis framework</p>
+    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-2">A dual-origin action taxonomy over 5,838 actions.</h2>
+    <p class="text-gray-500 text-[15px] mb-8 max-w-3xl">To ask whether agents merely <em>add</em> actions or <em>reconfigure</em> sequences, we needed a classification that separates designer-initiated manipulation from system-mediated generation. 14,075 raw events &rarr; 7,293 clean events &rarr; 5,838 mappable actions.</p>
+
+    <div class="grid md:grid-cols-2 gap-6 mb-10">
+      <div class="border border-gray-200 rounded-2xl p-5">
+        <div class="flex items-center gap-2 mb-1">
+          <span class="w-2.5 h-2.5 rounded-full bg-gray-500"></span>
+          <h3 class="font-bold text-gray-900">State-based inference</h3>
+          <span class="ml-auto text-[11px] text-gray-400 font-mono">7 categories</span>
+        </div>
+        <p class="text-[13px] text-gray-600 leading-relaxed mb-4">Designer-initiated actions on seven artifact types, classified by comparing each instance&rsquo;s current state <span class="font-mono text-[12px]">S<sub>t</sub></span> against <span class="font-mono text-[12px]">S<sub>t&minus;1</sub></span> across seven deltas &mdash; life cycle, <span class="font-mono text-[12px]">&Delta;char</span>, <span class="font-mono text-[12px]">&Delta;pos</span>, attributes, annotations, relation endpoints, and hierarchy.</p>
+        <div class="flex flex-wrap gap-2">
+          <span class="tax-chip border border-gray-200 rounded-lg px-2.5 py-1.5 text-[12.5px]" title="Create a new artifact"><b>Create</b></span>
+          <span class="tax-chip border border-gray-200 rounded-lg px-2.5 py-1.5 text-[12.5px]" title="Modify or refine existing artifact content"><b>Elaborate</b></span>
+          <span class="tax-chip border border-gray-200 rounded-lg px-2.5 py-1.5 text-[12.5px]" title="Change the spatial position of artifacts"><b>Relocate</b></span>
+          <span class="tax-chip border border-gray-200 rounded-lg px-2.5 py-1.5 text-[12.5px]" title="Create and delete connections between artifacts"><b>Relate</b></span>
+          <span class="tax-chip border border-gray-200 rounded-lg px-2.5 py-1.5 text-[12.5px]" title="Hierarchy organization through column-based grouping"><b>Structure</b></span>
+          <span class="tax-chip border border-gray-200 rounded-lg px-2.5 py-1.5 text-[12.5px]" title="Delete artifacts"><b>Prune</b></span>
+          <span class="tax-chip border border-gray-200 rounded-lg px-2.5 py-1.5 text-[12.5px]" title="Update user-generated annotations (reactions and comments)"><b>Interact</b></span>
+        </div>
+      </div>
+
+      <div class="border border-accent-200 bg-accent-50/40 rounded-2xl p-5">
+        <div class="flex items-center gap-2 mb-1">
+          <span class="w-2.5 h-2.5 rounded-full bg-accent-500"></span>
+          <h3 class="font-bold text-accent-800">Explicit system events</h3>
+          <span class="ml-auto text-[11px] text-gray-400 font-mono">4 categories</span>
+        </div>
+        <p class="text-[13px] text-gray-600 leading-relaxed mb-4">AI-mediated actions detected from system-level markers, capturing four distinct AI roles across the generation and intent-alignment loop.</p>
+        <div class="flex flex-wrap gap-2">
+          <span class="tax-chip border border-accent-200 bg-white rounded-lg px-2.5 py-1.5 text-[12.5px]" title="Agent-initiated image generation; tagged when designers accept or reject ECHO/INSIGHT/SPARK proposals"><b>AgentGen</b></span>
+          <span class="tax-chip border border-accent-200 bg-white rounded-lg px-2.5 py-1.5 text-[12.5px]" title="User-initiated prompt-based generation without agent mediation"><b>PromptGen</b></span>
+          <span class="tax-chip border border-accent-200 bg-white rounded-lg px-2.5 py-1.5 text-[12.5px]" title="AI-assisted localized image modification"><b>ImageEdit</b></span>
+          <span class="tax-chip border border-accent-200 bg-white rounded-lg px-2.5 py-1.5 text-[12.5px]" title="Edit global goal statements or local intent descriptors"><b>IntentEdit</b></span>
+        </div>
+        <p class="text-[11.5px] text-gray-400 mt-4">Hover any category for its definition.</p>
+      </div>
+    </div>
+
+    <div class="grid md:grid-cols-4 gap-4">
+      <div class="border border-gray-200 rounded-xl p-4">
+        <div class="text-[11px] font-mono text-accent-600 mb-2">method 01</div>
+        <h3 class="font-semibold text-gray-900 text-[14.5px] mb-1.5">Action count comparison</h3>
+        <p class="text-[12.5px] text-gray-600 leading-snug">Wilcoxon signed-rank tests on paired raw counts per category, for volume shifts between conditions.</p>
+      </div>
+      <div class="border border-gray-200 rounded-xl p-4">
+        <div class="text-[11px] font-mono text-accent-600 mb-2">method 02</div>
+        <h3 class="font-semibold text-gray-900 text-[14.5px] mb-1.5"><span class="font-mono">n</span>-gram sequence analysis</h3>
+        <p class="text-[12.5px] text-gray-600 leading-snug">Patterns at <span class="font-mono">n</span> = 2&ndash;5 per participant, with concurrent action pairs expanded into all <span class="font-mono">2<sup>k</sup></span> permutations and equally weighted.</p>
+      </div>
+      <div class="border border-gray-200 rounded-xl p-4">
+        <div class="text-[11px] font-mono text-accent-600 mb-2">method 03</div>
+        <h3 class="font-semibold text-gray-900 text-[14.5px] mb-1.5">Transition divergence (JSD)</h3>
+        <p class="text-[12.5px] text-gray-600 leading-snug">First-order Markov transition matrices per condition, compared by Jensen&ndash;Shannon divergence with a 5,000-iteration permutation test.</p>
+      </div>
+      <div class="border border-gray-200 rounded-xl p-4">
+        <div class="text-[11px] font-mono text-accent-600 mb-2">method 04</div>
+        <h3 class="font-semibold text-gray-900 text-[14.5px] mb-1.5">Collaborative loops</h3>
+        <p class="text-[12.5px] text-gray-600 leading-snug">Recurring sequences of alternating designer-initiated and agent-mediated actions, characterized for RQ2.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================== STUDY ============================== -->
+  <section id="study" class="section-anchor bg-gray-50 border-y border-gray-100">
+    <div class="max-w-6xl mx-auto px-6 py-14">
+      <p class="text-[10px] uppercase tracking-widest text-accent-700 font-semibold mb-2">Deployment</p>
+      <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-2">Ten days, in the wild, each designer their own baseline.</h2>
+      <p class="text-gray-500 text-[15px] mb-8 max-w-3xl">Laboratory tasks can measure short-term performance, but they cannot reveal whether records <em>accumulate</em> into reusable creative traces, whether intent alignment holds over time, or whether designers actually change how they revisit and recombine past artifacts.</p>
+
+      <div class="grid md:grid-cols-2 gap-4 mb-9">
+        <div class="bg-white border border-gray-200 rounded-2xl p-5">
+          <div class="text-[10px] uppercase tracking-widest text-gray-400 font-semibold mb-2">Condition A</div>
+          <h3 class="font-bold text-gray-900 mb-1.5">DesignJournal<sub class="font-normal text-gray-500">baseline</sub></h3>
+          <p class="text-[13px] text-gray-600 leading-relaxed">The unified multimodal workspace with manual organization &mdash; timeline, canvas, relational linking, and direct prompt-based generation.</p>
+        </div>
+        <div class="bg-white border-2 border-accent-300 rounded-2xl p-5">
+          <div class="text-[10px] uppercase tracking-widest text-accent-600 font-semibold mb-2">Condition B</div>
+          <h3 class="font-bold text-gray-900 mb-1.5">DesignJournal<sub class="font-normal text-accent-600">+Agent</sub></h3>
+          <p class="text-[13px] text-gray-600 leading-relaxed">The same workspace plus the agentic pipeline: automatic ECHO/INSIGHT/SPARK grouping, belief-guided prompt refinement, and iterative intent updates.</p>
+        </div>
+      </div>
+
+      <div class="grid md:grid-cols-3 gap-4 mb-9">
+        <div class="bg-white border border-gray-200 rounded-xl p-5">
+          <h3 class="font-semibold text-gray-900 mb-1.5 text-[15px]">Participants</h3>
+          <p class="text-[13px] text-gray-600 leading-relaxed">Eight professional designers (1&ndash;8 years&rsquo; experience, 30&ndash;60 h/week) from design agencies and in-house corporate teams &mdash; industrial, product, furniture, and home furnishings design. Within-subject, so each serves as their own baseline. IRB-approved (HYU-2025-138).</p>
+        </div>
+        <div class="bg-white border border-gray-200 rounded-xl p-5">
+          <h3 class="font-semibold text-gray-900 mb-1.5 text-[15px]">Task</h3>
+          <p class="text-[13px] text-gray-600 leading-relaxed">Two standardized client-style briefs &mdash; a specialty cafe lounge (space) and a kitchenware collection (product) &mdash; one per condition, counterbalanced. Deliver a final outcome plus a moodboard with written rationale suitable for client communication.</p>
+        </div>
+        <div class="bg-white border border-gray-200 rounded-xl p-5">
+          <h3 class="font-semibold text-gray-900 mb-1.5 text-[15px]">Protocol</h3>
+          <p class="text-[13px] text-gray-600 leading-relaxed">Five working days per condition, each followed by a post-condition survey and semi-structured interview. Designers kept their familiar tools (CAD, Adobe, whiteboards) but funneled every inspiration through the study tool for traceability, with lightweight daily documentation.</p>
+        </div>
+      </div>
+
+      <div class="grid md:grid-cols-2 gap-6">
+        <figure>
+          <img src="assets/img/fig7_timeline.jpg" loading="lazy" alt="Experimental timeline of the 10-day deployment study." class="w-full block rounded-xl border border-gray-200 bg-white zoomable" />
+          <figcaption class="mt-2 text-gray-500 text-[11px] leading-relaxed text-center"><b>Figure 7.</b> Experimental timeline of the 10-day deployment study.</figcaption>
+        </figure>
+        <figure>
+          <img src="assets/img/fig8_briefs.jpg" loading="lazy" alt="Experimental briefs: a space brief for a specialty cafe lounge and a product brief for a kitchenware collection." class="w-full block rounded-xl border border-gray-200 bg-white zoomable" />
+          <figcaption class="mt-2 text-gray-500 text-[11px] leading-relaxed text-center"><b>Figure 8.</b> The briefs: (a) a specialty cafe lounge and (b) a kitchenware collection.</figcaption>
+        </figure>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================== RESULTS ============================== -->
+  <section id="results" class="section-anchor max-w-6xl mx-auto px-6 py-14">
+    <p class="text-[10px] uppercase tracking-widest text-accent-700 font-semibold mb-2">Results &middot; RQ1</p>
+    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-2">Less shuffling, differently sequenced.</h2>
+    <p class="text-gray-500 text-[15px] mb-8 max-w-3xl">Total action volume did not differ significantly between conditions (<span class="font-mono text-[13px]">W</span> = 6, <span class="font-mono text-[13px]">p</span> = .109). What changed was <em>which</em> actions and, more tellingly, <em>in what order</em>.</p>
+
+    <!-- Headline findings -->
+    <div class="grid md:grid-cols-3 gap-4 mb-10">
+      <div class="border border-accent-200 bg-accent-50/40 rounded-2xl p-5">
+        <div class="text-[10px] uppercase tracking-widest text-accent-700 font-semibold mb-2">Action distribution</div>
+        <p class="text-[14px] text-gray-800 leading-relaxed mb-2"><b>Relocate</b> fell from <span class="font-mono">M</span> = 197.5 to <span class="font-mono">M</span> = 112.1.</p>
+        <p class="text-[12.5px] text-gray-600 leading-relaxed"><span class="font-mono">W</span> = 3, <span class="font-mono">p</span> = .039, <span class="font-mono">r</span> = 0.83 &mdash; a large effect, with six of eight designers decreasing. No other shared category changed significantly.</p>
+      </div>
+      <div class="border border-accent-200 bg-accent-50/40 rounded-2xl p-5">
+        <div class="text-[10px] uppercase tracking-widest text-accent-700 font-semibold mb-2">Magnitude</div>
+        <p class="text-[14px] text-gray-800 leading-relaxed mb-2">The drop concentrated in <b>small</b> displacements.</p>
+        <p class="text-[12.5px] text-gray-600 leading-relaxed">Small: 75.5 &rarr; 27.6 (<span class="font-mono">p</span> = .047, <span class="font-mono">d</span> = 0.81), significant in <b>100%</b> of 1,000 Monte Carlo threshold perturbations. Medium and large did not reach significance.</p>
+      </div>
+      <div class="border border-accent-200 bg-accent-50/40 rounded-2xl p-5">
+        <div class="text-[10px] uppercase tracking-widest text-accent-700 font-semibold mb-2">Sequential structure</div>
+        <p class="text-[14px] text-gray-800 leading-relaxed mb-2">Transition structure <b>differed significantly</b>.</p>
+        <p class="text-[12.5px] text-gray-600 leading-relaxed">Group-level permutation test: observed <span class="font-mono">M</span> = 0.289 vs. null <span class="font-mono">M</span> = 0.248, <span class="font-mono">Z</span> = 2.24, <span class="font-mono">p</span> = .010. Individual-level corrected JSD: <span class="font-mono">p</span> = .031, <span class="font-mono">r</span> = +1.00.</p>
+      </div>
+    </div>
+
+    <!-- Relocate magnitude table -->
+    <div class="mb-12">
+      <h3 class="text-xl font-bold text-gray-900 mb-1">Where the repositioning went</h3>
+      <p class="text-gray-500 text-[14px] mb-5 max-w-2xl">Relocate stratified into three magnitude levels at the 33rd and 67th percentiles of the pooled displacement distribution.</p>
+      <div class="overflow-x-auto rounded-xl border border-gray-200">
+        <table class="w-full text-[13px] min-w-[560px]">
+          <thead class="bg-gray-50 text-gray-600">
+            <tr>
+              <th class="text-left font-semibold px-4 py-2.5">Magnitude</th>
+              <th class="text-right font-semibold px-4 py-2.5">baseline <span class="font-normal text-gray-400">M (SD)</span></th>
+              <th class="text-right font-semibold px-4 py-2.5">+Agent <span class="font-normal text-gray-400">M (SD)</span></th>
+              <th class="text-right font-semibold px-4 py-2.5 font-mono">p</th>
+              <th class="text-right font-semibold px-4 py-2.5 font-mono">d</th>
+              <th class="text-right font-semibold px-4 py-2.5">MC robustness</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-100">
+            <tr class="bg-accent-50/40">
+              <td class="px-4 py-2.5 font-semibold text-accent-800">Small</td>
+              <td class="px-4 py-2.5 text-right font-mono">75.5 (58.3)</td>
+              <td class="px-4 py-2.5 text-right font-mono font-semibold text-accent-700">27.6 (15.3)</td>
+              <td class="px-4 py-2.5 text-right font-mono font-semibold text-accent-700">.047*</td>
+              <td class="px-4 py-2.5 text-right font-mono">0.81</td>
+              <td class="px-4 py-2.5 text-right">100% <span class="text-gray-400">(&plusmn;15 pct.)</span></td>
+            </tr>
+            <tr>
+              <td class="px-4 py-2.5 font-medium text-gray-700">Medium</td>
+              <td class="px-4 py-2.5 text-right font-mono">64.4 (51.6)</td>
+              <td class="px-4 py-2.5 text-right font-mono">39.0 (22.0)</td>
+              <td class="px-4 py-2.5 text-right font-mono text-gray-500">.109</td>
+              <td class="px-4 py-2.5 text-right font-mono">0.54</td>
+              <td class="px-4 py-2.5 text-right text-gray-500">4.9%</td>
+            </tr>
+            <tr>
+              <td class="px-4 py-2.5 font-medium text-gray-700">Large</td>
+              <td class="px-4 py-2.5 text-right font-mono">57.6 (36.2)</td>
+              <td class="px-4 py-2.5 text-right font-mono">45.5 (23.7)</td>
+              <td class="px-4 py-2.5 text-right font-mono text-gray-500">.461</td>
+              <td class="px-4 py-2.5 text-right font-mono">0.37</td>
+              <td class="px-4 py-2.5 text-right text-gray-500">0.0%</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="text-[11.5px] text-gray-400 mt-2">Wilcoxon signed-rank tests. MC robustness = proportion of Monte Carlo perturbation runs preserving significance under threshold variation. The same stratification applied to Elaborate yielded no significant differences at any magnitude.</p>
+
+      <div class="mt-5 rounded-xl border border-gray-200 bg-gray-50 p-5">
+        <p class="text-[14px] text-gray-800 leading-relaxed">
+          Interviews explained the mechanism. P6: in the baseline, <em>&ldquo;I had to manually move images here and there, but the agent grouped them automatically.&rdquo;</em> P4 described the baseline as requiring <em>&ldquo;planning even the grouping part from scratch on a blank slate,&rdquo;</em> while agent-mediated grouping <em>&ldquo;took care of more than half of that organizational work.&rdquo;</em> P1: <em>&ldquo;grouping through ECHO saved time, especially when making final decisions and organizing.&rdquo;</em>
+        </p>
+      </div>
+    </div>
+
+    <!-- n-gram interactive -->
+    <div class="mb-12">
+      <h3 class="text-xl font-bold text-gray-900 mb-1">Repositioning chains attenuate as <span class="font-mono">n</span> grows</h3>
+      <p class="text-gray-500 text-[14px] mb-6 max-w-2xl">Pure Relocate chains dominate the baseline at every order. With agent support they shrink at each one &mdash; and the gap widens the longer the chain.</p>
+
+      <div class="interactive-zone p-5 md:p-7 pt-8 md:pt-9">
+        <span class="interactive-badge"><span class="dot"></span> Change n</span>
+        <div class="flex flex-wrap items-center gap-2 mb-6" id="ngram-tabs">
+          <span class="text-[12px] text-gray-500 mr-1">Chain length</span>
+          <button class="ngram-tab is-active px-3 py-1 rounded-full border border-accent-600 bg-accent-600 text-white text-[12.5px] font-medium" data-n="2">n = 2</button>
+          <button class="ngram-tab px-3 py-1 rounded-full border border-gray-300 bg-white text-gray-700 text-[12.5px] font-medium" data-n="3">n = 3</button>
+          <button class="ngram-tab px-3 py-1 rounded-full border border-gray-300 bg-white text-gray-700 text-[12.5px] font-medium" data-n="4">n = 4</button>
+          <button class="ngram-tab px-3 py-1 rounded-full border border-gray-300 bg-white text-gray-700 text-[12.5px] font-medium" data-n="5">n = 5</button>
+        </div>
+
+        <div class="bg-white border border-gray-200 rounded-2xl p-5 md:p-6">
+          <p class="font-mono text-[13px] text-gray-700 mb-5" id="ngram-pattern">Relocate &rarr; Relocate</p>
+          <div class="space-y-4">
+            <div>
+              <div class="flex items-baseline justify-between text-[13px] mb-1.5">
+                <span class="text-gray-600">DesignJournal<sub>baseline</sub></span>
+                <span class="font-mono font-semibold text-gray-700" id="ngram-base-val">29.92%</span>
+              </div>
+              <div class="h-3 rounded-full bg-gray-100 overflow-hidden"><div class="bar h-full bg-gray-400" id="ngram-base-bar" style="width:100%"></div></div>
+            </div>
+            <div>
+              <div class="flex items-baseline justify-between text-[13px] mb-1.5">
+                <span class="text-accent-700 font-medium">DesignJournal<sub>+Agent</sub></span>
+                <span class="font-mono font-semibold text-accent-700" id="ngram-agent-val">18.40%</span>
+              </div>
+              <div class="h-3 rounded-full bg-accent-100 overflow-hidden"><div class="bar h-full bg-accent-600" id="ngram-agent-bar" style="width:61.5%"></div></div>
+            </div>
+          </div>
+          <div class="mt-5 pt-4 border-t border-dashed border-gray-200 flex flex-wrap items-baseline gap-x-3">
+            <span class="text-[10px] uppercase tracking-widest text-gray-400 font-semibold">Difference</span>
+            <span class="font-mono text-[15px] font-bold text-accent-700" id="ngram-delta">&minus;11.5 pp</span>
+            <span class="text-[12.5px] text-gray-500" id="ngram-note">the single largest shift in the transition profile</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-6 grid md:grid-cols-2 gap-5">
+        <div class="border border-gray-200 rounded-2xl p-5">
+          <h4 class="font-semibold text-gray-900 mb-1.5">Relocate chain attenuation</h4>
+          <p class="text-[13px] text-gray-600 leading-relaxed">In the baseline, Relocate&nbsp;&rarr;&nbsp;Relocate dominated all 2-grams and stayed high through higher orders. Under agent support every order dropped. The baseline top-10 also contained Relocate&nbsp;&rarr;&nbsp;Elaborate (1.84%) and Elaborate&nbsp;&rarr;&nbsp;Relocate (1.76%) &mdash; workflows where spatial arrangement preceded content elaboration. Both were reduced.</p>
+        </div>
+        <div class="border border-gray-200 rounded-2xl p-5">
+          <h4 class="font-semibold text-gray-900 mb-1.5">Relational patterns interleave</h4>
+          <p class="text-[13px] text-gray-600 leading-relaxed">Relate counts did not differ (<span class="font-mono">p</span> = .688), but their <em>position</em> did. Create&nbsp;&rarr;&nbsp;Relate entered the +Agent top-10 at 2.98%; Relate&nbsp;&rarr;&nbsp;Relate rose to 6.38% and Relate&nbsp;&rarr;&nbsp;Relocate to 5.82%. At higher orders, pure Relate chains did <em>not</em> grow &mdash; instead interleaved Relate&ndash;Relocate 3-grams displaced Relocate-dominated ones. Relational work became <b>interwoven with spatial activity</b> rather than occurring in isolated bursts.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sequence figures -->
+    <div class="grid md:grid-cols-2 gap-6">
+      <figure>
+        <img src="assets/img/fig11_seq_agent.jpg" loading="lazy" alt="Participant-level action sequences in DesignJournal +Agent, one row per participant." class="w-full block rounded-xl border border-gray-200 bg-white zoomable" />
+        <figcaption class="mt-2 text-gray-500 text-[11px] leading-relaxed text-center"><b>Figure 11.</b> Participant-level action sequences in DesignJournal<sub>+Agent</sub>. Each row is one participant (P1&ndash;P8); the x-axis is the action index.</figcaption>
+      </figure>
+      <figure>
+        <img src="assets/img/fig12_seq_baseline.jpg" loading="lazy" alt="Participant-level action sequences in DesignJournal baseline, one row per participant." class="w-full block rounded-xl border border-gray-200 bg-white zoomable" />
+        <figcaption class="mt-2 text-gray-500 text-[11px] leading-relaxed text-center"><b>Figure 12.</b> The same participants in DesignJournal<sub>baseline</sub> &mdash; note the comparatively dense Relocate bands (gray).</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <!-- ============================== LOOPS ============================== -->
+  <section id="loops" class="section-anchor bg-gray-50 border-y border-gray-100">
+    <div class="max-w-6xl mx-auto px-6 py-14">
+      <p class="text-[10px] uppercase tracking-widest text-accent-700 font-semibold mb-2">Results &middot; RQ2</p>
+      <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-2">New collaborative loops &mdash; and a new place to start.</h2>
+      <p class="text-gray-500 text-[15px] mb-8 max-w-3xl">AgentGen actions were infrequent (5.84% of all actions), yet they recurred at the core of the generation&ndash;refinement loops. Their influence is structural, not volumetric.</p>
+
+      <div class="bg-white border border-gray-200 rounded-2xl p-5 md:p-6 mb-6">
+        <h3 class="font-bold text-gray-900 mb-2">Entry point shift</h3>
+        <p class="text-[14px] text-gray-600 leading-relaxed mb-4">Baseline workflows began with the designer&rsquo;s own manual initiation &mdash; keyword derivation, moodboard assembly, or sketching. With agent support the loop started earlier, from the collected material itself, replacing those manual routines.</p>
+        <div class="grid md:grid-cols-3 gap-4">
+          <blockquote class="bg-gray-50 border border-gray-200 rounded-xl p-4">
+            <p class="text-[13.5px] text-gray-800 leading-relaxed mb-2">&ldquo;I started from references rather than sketches from the beginning because the agent could work with collected materials.&rdquo;</p>
+            <footer class="text-[12px] text-accent-700 font-medium">P1 &middot; usually starts by sketching</footer>
+          </blockquote>
+          <blockquote class="bg-gray-50 border border-gray-200 rounded-xl p-4">
+            <p class="text-[13.5px] text-gray-800 leading-relaxed mb-2">Without the agent, &ldquo;I had to derive keywords and start categorizing by myself from scratch.&rdquo;</p>
+            <footer class="text-[12px] text-accent-700 font-medium">P2 &middot; on the manual entry point</footer>
+          </blockquote>
+          <blockquote class="bg-gray-50 border border-gray-200 rounded-xl p-4">
+            <p class="text-[13.5px] text-gray-800 leading-relaxed mb-2">&ldquo;Even when I didn&rsquo;t have a concrete image in mind, I could use the Generate Idea function right away.&rdquo;</p>
+            <footer class="text-[12px] text-accent-700 font-medium">P5 &middot; replacing Pinterest moodboarding</footer>
+          </blockquote>
+        </div>
+      </div>
+
+      <div class="grid md:grid-cols-2 gap-5 mb-10">
+        <div class="bg-white border-2 border-spark-500 rounded-2xl p-5">
+          <div class="flex items-center gap-2 mb-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-spark-500"></span>
+            <h3 class="font-bold text-spark-700">Divergent loops</h3>
+            <span class="ml-auto text-[11px] text-gray-400 font-mono">expand before commitment</span>
+          </div>
+          <p class="text-[13.5px] text-gray-600 leading-relaxed mb-3">Visible in the transition data: AgentGen&nbsp;&rarr;&nbsp;AgentGen entered the +Agent top-10 2-grams at 2.30%. Among the participants who used it, this reflected sequential generation (<span class="font-mono">M</span> = 34.10%, <span class="font-mono">SD</span> = 22.33%) &mdash; producing multiple alternatives before selecting.</p>
+          <p class="text-[13px] text-gray-500 leading-relaxed">In P2&rsquo;s progression, the agent first acted as a divergent catalyst, generating kitchenware alternatives through sequential SPARK triggers.</p>
+        </div>
+        <div class="bg-white border-2 border-echo-500 rounded-2xl p-5">
+          <div class="flex items-center gap-2 mb-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-echo-500"></span>
+            <h3 class="font-bold text-echo-700">Convergent loops</h3>
+            <span class="ml-auto text-[11px] text-gray-400 font-mono">narrow through exchange</span>
+          </div>
+          <p class="text-[13.5px] text-gray-600 leading-relaxed mb-3">Iterative cycling through intent articulation, agent generation, and image editing until a cohesive design settles. P2 refined and committed selected outputs over five days, mobilizing INSIGHT and a final round of SPARK.</p>
+          <p class="text-[13px] text-gray-500 leading-relaxed">P1 used ECHO and INSIGHT for direction validation, progressively developing standing tables, evening mood lighting, rounded furniture, and cocoon seating &mdash; converging on a cozy cafe with natural materials and terracotta floor accents.</p>
+        </div>
+      </div>
+
+      <div class="grid md:grid-cols-2 gap-6 mb-12">
+        <figure>
+          <img src="assets/img/fig9_outcomes.jpg" loading="lazy" alt="Final design outcomes and corresponding records for P1 and P8 using DesignJournal +Agent." class="w-full block rounded-xl border border-gray-200 bg-white zoomable" />
+          <figcaption class="mt-2 text-gray-500 text-[11px] leading-relaxed text-center"><b>Figure 9.</b> Final outcomes and their records for (a) P1 and (b) P8 under DesignJournal<sub>+Agent</sub> &mdash; P8 progressed from concept definition to detailed design through agent-assisted editing, arriving at mezzanine seating, soft rounded lighting, and clean-lined bar tables.</figcaption>
+        </figure>
+        <figure>
+          <img src="assets/img/fig13_p2.jpg" loading="lazy" alt="Design progression of P2 in DesignJournal +Agent over five days and 554 actions." class="w-full block rounded-xl border border-gray-200 bg-white zoomable" />
+          <figcaption class="mt-2 text-gray-500 text-[11px] leading-relaxed text-center"><b>Figure 13.</b> P2&rsquo;s progression in DesignJournal<sub>+Agent</sub> (product brief, 554 actions over 5 days) &mdash; divergent SPARK triggers early, convergent refinement later.</figcaption>
+        </figure>
+      </div>
+
+      <!-- RQ3 -->
+      <p class="text-[10px] uppercase tracking-widest text-accent-700 font-semibold mb-2">Results &middot; RQ3</p>
+      <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-2">Awareness of the agent reached back into recording.</h2>
+      <p class="text-gray-500 text-[15px] mb-7 max-w-3xl">Knowing an agent would read the journal changed what designers were willing to put in it &mdash; an upstream effect on capture, not just on generation.</p>
+
+      <div class="grid md:grid-cols-2 gap-5 mb-7">
+        <blockquote class="bg-white border border-gray-200 rounded-2xl p-5">
+          <p class="text-[14px] text-gray-800 leading-relaxed mb-3">In the baseline, &ldquo;I didn&rsquo;t have to worry about the agent, so I had more freedom in uploading records.&rdquo; With the agent, &ldquo;I felt constrained because I was thinking about what the agent would see.&rdquo;</p>
+          <footer class="text-[12px] text-accent-700 font-medium">P5 &middot; on self-censored capture</footer>
+        </blockquote>
+        <blockquote class="bg-white border border-gray-200 rounded-2xl p-5">
+          <p class="text-[14px] text-gray-800 leading-relaxed mb-3">&ldquo;If I could distinguish which elements the agent is looking at, I would have used it better &mdash; some memos I wouldn&rsquo;t want it to read, others I would.&rdquo;</p>
+          <footer class="text-[12px] text-accent-700 font-medium">P2 &middot; on selective visibility</footer>
+        </blockquote>
+      </div>
+
+      <div class="bg-accent-50/60 border border-accent-200 rounded-2xl p-6 md:p-7">
+        <p class="text-[15px] md:text-[16px] text-gray-800 leading-relaxed">
+          The takeaway isn&rsquo;t that agents make designers <em>faster</em> &mdash; total action volume barely moved. It&rsquo;s that agents <b class="text-accent-700">redistribute design effort</b>. Small-scale spatial fiddling, the manual proxy for organizing thought, gets absorbed by automatic grouping; what remains reorganizes around <b>relational encoding</b> and generation&ndash;refinement exchange. Agent support also extended designers&rsquo; creative reach beyond independent exploration &mdash; while raising open questions about authorship, traceability, and how much of the journal a designer actually wants read.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================== ARCHITECTURE ============================== -->
+  <section id="arch" class="section-anchor max-w-5xl mx-auto px-6 py-14">
+    <p class="text-[10px] uppercase tracking-widest text-accent-700 font-semibold mb-2">Deployment architecture</p>
+    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-2">Every action, timestamped and traceable.</h2>
+    <p class="text-gray-500 text-[15px] mb-7 max-w-2xl">DesignJournal captures and processes all designer activity through a serverless cloud stack &mdash; the source of the 14,075 raw interaction events behind the analysis.</p>
+    <figure>
+      <img src="assets/img/fig6_stack.jpg" loading="lazy" alt="Serverless cloud stack for the deployment experiment." class="w-full block rounded-xl border border-gray-200 bg-white zoomable" />
+      <figcaption class="mt-2 text-gray-500 text-[11px] leading-relaxed text-center"><b>Figure 6.</b> Serverless cloud stack for the deployment experiment.</figcaption>
+    </figure>
+  </section>
+
+  <!-- ============================== CITATION ============================== -->
+  <section id="cite" class="section-anchor bg-gray-50 border-t border-gray-100">
+    <div class="max-w-5xl mx-auto px-6 py-12">
+      <p class="text-[10px] uppercase tracking-widest text-accent-700 font-semibold mb-3">BibTeX</p>
+      <pre class="bg-gray-900 text-gray-100 rounded-xl p-5 overflow-x-auto text-[12.5px] leading-relaxed"><code>@article{lee2026designjournal,
+  title   = {How Agent-Driven Creative Trace Mining Reshapes Design Behavior
+             in a Deployment Study of Intent-Aligned Multimodal Design},
+  author  = {Lee, Seung Won and Choi, Jiin and Yun, Yejin and Jin, Semin
+             and Jang, Yugyeong and Hwang, Geunmin and Park, Sang Woon
+             and Ban, Seonghoon and Hyun, Kyung Hoon},
+  journal = {International Journal of Human--Computer Interaction},
+  year    = {2026},
+  note    = {Under review},
+}</code></pre>
+      <div class="mt-4 flex items-start gap-3 rounded-xl border border-accent-200 bg-accent-50 px-4 py-3.5">
+        <svg class="w-4 h-4 mt-0.5 flex-shrink-0 text-accent-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        <p class="text-[13px] leading-relaxed text-accent-900">
+          <b>Under review at IJHCI.</b>
+          Volume, pages, and DOI will be filled in once the paper is accepted and the official citation is released.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================== FOOTER ============================== -->
+  <footer class="border-t border-gray-100">
+    <div class="max-w-5xl mx-auto px-6 py-8 flex flex-col md:flex-row items-center justify-between gap-3 text-[12.5px] text-gray-500">
+      <span class="flex items-center gap-1.5"><span class="text-accent-600">◧</span> DesignJournal</span>
+      <a href="https://designai.hanyang.ac.kr" target="_blank" rel="noopener" class="hover:text-gray-900">Design AI Lab, Hanyang University</a>
+    </div>
+  </footer>
+
+  <!-- ============================== LIGHTBOX ============================== -->
+  <div id="lightbox" class="fixed inset-0 z-[100] bg-black/80 hidden items-center justify-center p-6 cursor-zoom-out">
+    <img id="lightbox-img" src="" alt="" class="max-w-full max-h-full rounded-lg shadow-2xl" />
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+
+      // ====== Related projects dropdown ======
+      var relBtn   = document.getElementById('related-btn');
+      var relMenu  = document.getElementById('related-menu');
+      var relCaret = document.getElementById('related-caret');
+      var relWrap  = document.getElementById('related-wrap');
+      if (relBtn && relMenu) {
+        function closeRel() {
+          relMenu.classList.add('hidden');
+          relBtn.setAttribute('aria-expanded', 'false');
+          relCaret.style.transform = '';
+        }
+        relBtn.addEventListener('click', function (e) {
+          e.stopPropagation();
+          var open = relMenu.classList.toggle('hidden') === false;
+          relBtn.setAttribute('aria-expanded', String(open));
+          relCaret.style.transform = open ? 'rotate(180deg)' : '';
+        });
+        document.addEventListener('click', function (e) {
+          if (!relWrap.contains(e.target)) closeRel();
+        });
+        document.addEventListener('keydown', function (e) {
+          if (e.key === 'Escape') closeRel();
+        });
+      }
+
+      // ====== Agent role explorer ======
+      var ROLES = {
+        echo: {
+          title: 'ECHO', sub: 'Consolidating decision-ready knowledge',
+          hex: '#274571',
+          records: [
+            'Terracotta floor sample photographed at a reference cafe',
+            'Note: "warm, grounded — client wants it to feel lived-in"',
+            'Saved render of rounded oak bar seating',
+            'To-do: confirm evening lighting temperature with client',
+          ],
+          prompt: '"A specialty cafe lounge with terracotta floor accents and rounded oak bar seating, warm low-temperature evening lighting, a grounded and lived-in atmosphere."',
+          question: 'Should the terracotta appear as a full floor field or as inset accent bands between the seating zones?',
+        },
+        insight: {
+          title: 'INSIGHT', sub: 'Reinterpreting material into patterns and constraints',
+          hex: '#436c3c',
+          records: [
+            'Three unrelated images that all share a low horizontal datum line',
+            'Voice memo about how customers linger near windows',
+            'Column grouping the designer built but never named',
+            'Comment: "why do I keep saving corner seats?"',
+          ],
+          prompt: '"A cafe lounge organized around a low horizontal datum, with window-adjacent lingering seats and recurring sheltered corner nooks reading as one spatial rhythm."',
+          question: 'Is the recurring corner condition about enclosure, or about the sightline back into the room?',
+        },
+        spark: {
+          title: 'SPARK', sub: 'Bounded divergence from kept-but-distant material',
+          hex: '#a05625',
+          records: [
+            'A saved photo of a fishing net drying rack — unrelated to the brief',
+            'Sketch of a folded-paper lampshade from an old project',
+            'Image of a mineral cross-section kept "just because"',
+            'Note: "the texture of dry clay before firing"',
+          ],
+          prompt: '"A cafe lounge whose ceiling reads as an open woven-net canopy, with folded-plane pendant shades and unfired-clay wall surfaces showing mineral striation."',
+          question: 'Should the woven canopy carry the lighting, or stay a purely tactile ceiling layer above separate pendants?',
+        },
+      };
+
+      var roleTitle   = document.getElementById('role-title');
+      var roleSub     = document.getElementById('role-sub');
+      var roleRecords = document.getElementById('role-records');
+      var rolePrompt  = document.getElementById('role-prompt');
+      var roleQuestion= document.getElementById('role-question');
+      var roleQLabel  = document.getElementById('role-qlabel');
+      var roleCards   = document.querySelectorAll('.role-card');
+
+      function renderRole(key) {
+        var r = ROLES[key]; if (!r) return;
+        roleTitle.textContent = r.title;
+        roleTitle.style.color = r.hex;
+        roleSub.textContent = r.sub;
+        roleRecords.innerHTML = r.records.map(function (t) {
+          return '<li class="flex items-start gap-2"><span class="mt-0.5" style="color:' + r.hex + '">&bull;</span><span>' + t + '</span></li>';
+        }).join('');
+        rolePrompt.textContent = r.prompt;
+        roleQuestion.textContent = r.question;
+        roleQLabel.style.color = r.hex;
+      }
+
+      var ROLE_HEX = { echo: '#3d6aa3', insight: '#5f8f56', spark: '#d1793a' };
+
+      roleCards.forEach(function (card) {
+        card.addEventListener('click', function () {
+          var key = card.getAttribute('data-role');
+          roleCards.forEach(function (c) {
+            c.classList.remove('is-active');
+            c.style.borderColor = '';
+          });
+          card.classList.add('is-active');
+          card.style.borderColor = ROLE_HEX[key];
+          renderRole(key);
+        });
+      });
+      // Initial state: ECHO selected. Its border is set inline so the reset above clears it uniformly.
+      var firstCard = document.querySelector('.role-card[data-role="echo"]');
+      if (firstCard) firstCard.style.borderColor = ROLE_HEX.echo;
+      renderRole('echo');
+
+      // ====== n-gram comparison ======
+      var NGRAMS = {
+        2: { pattern: 'Relocate → Relocate',                                    base: 29.92, agent: 18.40, note: 'the single largest shift in the transition profile' },
+        3: { pattern: 'Relocate → Relocate → Relocate',                         base: 21.79, agent: 12.29, note: 'extended chains fall faster than pairs' },
+        4: { pattern: 'Relocate → Relocate → Relocate → Relocate',              base: 17.43, agent:  9.04, note: 'nearly halved at the fourth order' },
+        5: { pattern: 'Relocate → Relocate → Relocate → Relocate → Relocate',   base: 14.41, agent:  6.69, note: 'the longest chains attenuate the most' },
+      };
+      var maxPct = 29.92;
+      var nPattern  = document.getElementById('ngram-pattern');
+      var nBaseVal  = document.getElementById('ngram-base-val');
+      var nBaseBar  = document.getElementById('ngram-base-bar');
+      var nAgentVal = document.getElementById('ngram-agent-val');
+      var nAgentBar = document.getElementById('ngram-agent-bar');
+      var nDelta    = document.getElementById('ngram-delta');
+      var nNote     = document.getElementById('ngram-note');
+      var nTabs     = document.querySelectorAll('.ngram-tab');
+
+      function renderNgram(n) {
+        var d = NGRAMS[n]; if (!d) return;
+        nPattern.textContent  = d.pattern;
+        nBaseVal.textContent  = d.base.toFixed(2) + '%';
+        nAgentVal.textContent = d.agent.toFixed(2) + '%';
+        nBaseBar.style.width  = (d.base  / maxPct * 100).toFixed(1) + '%';
+        nAgentBar.style.width = (d.agent / maxPct * 100).toFixed(1) + '%';
+        nDelta.textContent    = '−' + (d.base - d.agent).toFixed(1) + ' pp';
+        nNote.textContent     = d.note;
+      }
+
+      nTabs.forEach(function (tab) {
+        tab.addEventListener('click', function () {
+          nTabs.forEach(function (t) {
+            t.classList.remove('is-active');
+            t.className = 'ngram-tab px-3 py-1 rounded-full border border-gray-300 bg-white text-gray-700 text-[12.5px] font-medium';
+          });
+          tab.className = 'ngram-tab is-active px-3 py-1 rounded-full border border-accent-600 bg-accent-600 text-white text-[12.5px] font-medium';
+          renderNgram(tab.getAttribute('data-n'));
+        });
+      });
+
+      // ====== Figure lightbox ======
+      var lb = document.getElementById('lightbox');
+      var lbImg = document.getElementById('lightbox-img');
+      document.querySelectorAll('.zoomable').forEach(function (img) {
+        img.addEventListener('click', function () {
+          lbImg.src = img.src; lbImg.alt = img.alt;
+          lb.classList.remove('hidden'); lb.classList.add('flex');
+        });
+      });
+      lb.addEventListener('click', function () {
+        lb.classList.add('hidden'); lb.classList.remove('flex'); lbImg.src = '';
+      });
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && !lb.classList.contains('hidden')) {
+          lb.classList.add('hidden'); lb.classList.remove('flex'); lbImg.src = '';
+        }
+      });
+    });
+  </script>
+</body>
+</html>
