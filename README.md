@@ -6,8 +6,6 @@ DesignJournal is an agent-driven creative workspace that helps designers collect
 
 > This repository is being prepared for the public release of the DesignJournal research materials. Data and system resources will be added incrementally.
 
-**Project page:** [`index.html`](index.html) — an overview of the paper, system, study, and key results. Enable GitHub Pages on `main` (root) to publish it, or preview locally with `python -m http.server 8000`.
-
 ## System Overview
 
 ![DesignJournal system overview](assets/Figure1.png)
@@ -38,7 +36,7 @@ The following materials will be released in this repository:
 | --- | --- |
 | Participant action data | Coming soon |
 | DesignJournal system | Coming soon |
-| Project page | Available |
+| Project page | Coming soon |
 
 ## Citation
 
